@@ -72,7 +72,18 @@ No data leaves your browser.
     └── pack.sh       # build .zip for Chrome Web Store
 ```
 
-Pack for Web Store: `./scripts/pack.sh`
+Pack locally: `./scripts/pack.sh`
+
+### Cutting a release
+
+Bump `version` in `manifest.json`, commit, then push a matching tag:
+
+```
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+GitHub Actions ([release.yml](.github/workflows/release.yml)) packs the zip and attaches it to a GitHub Release named after the tag.
 
 ## License
 
