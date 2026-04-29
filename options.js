@@ -4,11 +4,23 @@ const PULLS_RE = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/pulls(\/|\?|$)/;
 const rowsEl = document.getElementById("rows");
 const emptyEl = document.getElementById("empty");
 
+function normalizeEntry(value) {
+  if (!value) return null;
+  if (typeof value === "string") return { url: value, redirectOnLoad: false };
+  if (typeof value === "object" && typeof value.url === "string") {
+    return { url: value.url, redirectOnLoad: !!value.redirectOnLoad };
+  }
+  return null;
+}
+
 function render(all) {
   rowsEl.innerHTML = "";
   const keys = Object.keys(all).sort();
   emptyEl.hidden = keys.length > 0;
   for (const key of keys) {
+    const entry = normalizeEntry(all[key]);
+    if (!entry) continue;
+
     const tr = document.createElement("tr");
 
     const tdRepo = document.createElement("td");
@@ -18,8 +30,16 @@ function render(all) {
     tdUrl.className = "url";
     const input = document.createElement("input");
     input.className = "urlEdit";
-    input.value = all[key];
+    input.value = entry.url;
     tdUrl.appendChild(input);
+
+    const tdRedirect = document.createElement("td");
+    tdRedirect.style.textAlign = "center";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = entry.redirectOnLoad;
+    cb.title = "Redirect /pulls to filter on first open";
+    tdRedirect.appendChild(cb);
 
     const tdActions = document.createElement("td");
     const saveBtn = document.createElement("button");
@@ -39,7 +59,7 @@ function render(all) {
       }
       chrome.storage.sync.get([STORAGE_KEY], (res) => {
         const next = res[STORAGE_KEY] || {};
-        next[key] = v;
+        next[key] = { url: v, redirectOnLoad: cb.checked };
         chrome.storage.sync.set({ [STORAGE_KEY]: next });
       });
     });
@@ -60,6 +80,7 @@ function render(all) {
 
     tr.appendChild(tdRepo);
     tr.appendChild(tdUrl);
+    tr.appendChild(tdRedirect);
     tr.appendChild(tdActions);
     rowsEl.appendChild(tr);
   }

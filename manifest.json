@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GitHub PR Tab Rewriter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Rewrite a repo's Pull Requests tab to open your saved filtered query (e.g. hide dependabot, do-not-merge, do-not-review-yet PRs).",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["https://github.com/*"],

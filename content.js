@@ -7,9 +7,19 @@
   let overrides = {};
   const erroredFor = new Set();
   let pendingCheck = null;
+  let firstLoadHandled = false;
 
   const PULLS_PATH_RE = /^\/([^/]+)\/([^/]+)\/pulls\/?$/;
   const REPO_PATH_RE = /^\/([^/]+)\/([^/]+)(\/|$)/;
+
+  function normalizeEntry(value) {
+    if (!value) return null;
+    if (typeof value === "string") return { url: value, redirectOnLoad: false };
+    if (typeof value === "object" && typeof value.url === "string") {
+      return { url: value.url, redirectOnLoad: !!value.redirectOnLoad };
+    }
+    return null;
+  }
 
   function repoKeyFromPullsPath(pathname) {
     const m = PULLS_PATH_RE.exec(pathname);
@@ -42,12 +52,24 @@
       if (url.host !== "github.com") continue;
       const key = repoKeyFromPullsPath(url.pathname);
       if (!key) continue;
-      const target = overrides[key];
-      if (!target) continue;
-      if (a.href === target) continue;
-      a.href = target;
+      const entry = normalizeEntry(overrides[key]);
+      if (!entry) continue;
+      if (a.href === entry.url) continue;
+      a.href = entry.url;
       a.dataset.prTabRewritten = "1";
     }
+  }
+
+  function maybeFirstLoadRedirect() {
+    if (firstLoadHandled) return;
+    firstLoadHandled = true;
+    const key = repoKeyFromPullsPath(location.pathname);
+    if (!key) return;
+    if (location.search) return;
+    const entry = normalizeEntry(overrides[key]);
+    if (!entry || !entry.redirectOnLoad) return;
+    if (location.href === entry.url) return;
+    location.replace(entry.url);
   }
 
   function scheduleMissingCheck() {
@@ -78,6 +100,7 @@
   function loadAndApply() {
     chrome.storage.sync.get([STORAGE_KEY], (res) => {
       overrides = res[STORAGE_KEY] || {};
+      maybeFirstLoadRedirect();
       applyOverrides();
       scheduleMissingCheck();
     });

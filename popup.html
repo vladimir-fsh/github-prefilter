@@ -13,7 +13,7 @@
       }
       h1 { font-size: 14px; margin: 0 0 8px; }
       label { display: block; font-size: 12px; margin-top: 8px; color: #57606a; }
-      input, textarea {
+      input[type=text], textarea {
         width: 100%;
         box-sizing: border-box;
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -23,6 +23,16 @@
         border-radius: 6px;
       }
       textarea { min-height: 80px; resize: vertical; }
+      .check {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 10px;
+        font-size: 12px;
+        color: #1f2328;
+      }
+      .check input { margin-top: 2px; }
+      .check small { color: #57606a; display: block; }
       .row { display: flex; gap: 6px; margin-top: 10px; }
       button {
         font-size: 12px;
@@ -38,17 +48,24 @@
       .msg.error { color: #cf222e; }
       .msg.ok    { color: #1a7f37; }
       .muted     { color: #57606a; font-size: 11px; }
-      a { color: #0969da; }
     </style>
   </head>
   <body>
     <h1>GitHub PR Tab Rewriter</h1>
 
     <label for="repo">Repo (owner/repo)</label>
-    <input id="repo" placeholder="owner/repo" />
+    <input id="repo" type="text" placeholder="owner/repo" />
 
     <label for="url">Filtered Pull Requests URL</label>
     <textarea id="url" placeholder="https://github.com/owner/repo/pulls?q=..."></textarea>
+
+    <label class="check">
+      <input id="redirectOnLoad" type="checkbox" />
+      <span>
+        Redirect default <code>/pulls</code> to my filter on first open
+        <small>Only on full page load (not in-app navigation).</small>
+      </span>
+    </label>
 
     <div class="row">
       <button id="save" class="primary">Save</button>

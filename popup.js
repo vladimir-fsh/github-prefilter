@@ -2,6 +2,7 @@ const STORAGE_KEY = "prTabOverrides";
 
 const repoEl = document.getElementById("repo");
 const urlEl = document.getElementById("url");
+const redirectEl = document.getElementById("redirectOnLoad");
 const msgEl = document.getElementById("msg");
 const saveBtn = document.getElementById("save");
 const removeBtn = document.getElementById("remove");
@@ -13,6 +14,15 @@ const REPO_PATH_RE = /^\/([^/]+)\/([^/]+)(\/|$)/;
 function setMsg(text, kind = "") {
   msgEl.textContent = text;
   msgEl.className = "msg " + kind;
+}
+
+function normalizeEntry(value) {
+  if (!value) return null;
+  if (typeof value === "string") return { url: value, redirectOnLoad: false };
+  if (typeof value === "object" && typeof value.url === "string") {
+    return { url: value.url, redirectOnLoad: !!value.redirectOnLoad };
+  }
+  return null;
 }
 
 function parseRepoFromTabUrl(href) {
@@ -59,14 +69,18 @@ function getActiveTabUrl() {
 
 async function prefill() {
   const tabUrl = await getActiveTabUrl();
-  if (!tabUrl) return;
-  const repoKey = parseRepoFromTabUrl(tabUrl);
-  if (repoKey) repoEl.value = repoKey;
+  if (tabUrl) {
+    const repoKey = parseRepoFromTabUrl(tabUrl);
+    if (repoKey) repoEl.value = repoKey;
+  }
 
   chrome.storage.sync.get([STORAGE_KEY], (res) => {
     const all = res[STORAGE_KEY] || {};
-    if (repoKey && all[repoKey]) {
-      urlEl.value = all[repoKey];
+    const key = repoEl.value.trim();
+    const entry = normalizeEntry(all[key]);
+    if (entry) {
+      urlEl.value = entry.url;
+      redirectEl.checked = entry.redirectOnLoad;
       setMsg("Override exists for this repo.", "muted");
     }
   });
@@ -90,7 +104,7 @@ saveBtn.addEventListener("click", () => {
   }
   chrome.storage.sync.get([STORAGE_KEY], (res) => {
     const all = res[STORAGE_KEY] || {};
-    all[repoKey] = v.normalized;
+    all[repoKey] = { url: v.normalized, redirectOnLoad: redirectEl.checked };
     chrome.storage.sync.set({ [STORAGE_KEY]: all }, () => {
       setMsg("Saved.", "ok");
     });
@@ -112,6 +126,7 @@ removeBtn.addEventListener("click", () => {
     delete all[repoKey];
     chrome.storage.sync.set({ [STORAGE_KEY]: all }, () => {
       urlEl.value = "";
+      redirectEl.checked = false;
       setMsg("Removed.", "ok");
     });
   });
