@@ -69,11 +69,9 @@ No data leaves your browser.
 ├── options.html/.js  # full list editor
 ├── icons/            # 16/48/128 PNG icons
 └── scripts/
-    ├── make_icons.py # regenerate icons + promo screenshot
     └── pack.sh       # build .zip for Chrome Web Store
 ```
 
-Regenerate icons: `python3 scripts/make_icons.py`
 Pack for Web Store: `./scripts/pack.sh`
 
 ## License
